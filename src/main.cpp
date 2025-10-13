@@ -25,7 +25,7 @@ void onKeyboard(hid_keyboard_report_t report, hid_keyboard_report_t last_report)
 	else blekeyboard.release(KEY_RIGHT_ALT);
 	if (report.modifier & 0x80) blekeyboard.press(KEY_RIGHT_GUI);
 	else blekeyboard.release(KEY_RIGHT_GUI);
-
+	// Press new keys	
 	for (uint8_t i = 0; i < 6; ++i) {
 		uint8_t key = report.keycode[i];
 		if (key != 0) {
@@ -38,7 +38,7 @@ void onKeyboard(hid_keyboard_report_t report, hid_keyboard_report_t last_report)
 			}
 		}
 	}
-
+	// Release keys that are no longer pressed	
 	for (auto it = keys.begin(); it != keys.end();) {
 		bool autorepeat = false;
 		for (uint8_t i = 0; i < 6; ++i) {
@@ -69,6 +69,9 @@ void onMouse(hid_mouse_report_t report, uint8_t last_buttons) {
 	else blemouse.release(MOUSE_BACK);
 	if (report.buttons & 0x10) blemouse.press(MOUSE_FORWARD);
 	else blemouse.release(MOUSE_FORWARD);
+	Serial.print("Mouse: ");
+	Serial.print("X="); Serial.print(report.x);
+	Serial.print(" Y="); Serial.print(report.y);		
 }
 
 void setup() {
