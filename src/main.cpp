@@ -1,8 +1,10 @@
 #include "util.h"
 
 EspUsbHost usbhost;
-BleKeyboard blekeyboard;
-BleMouse blemouse;
+// BleKeyboard blekeyboard;
+// BleMouse blemouse;
+BleComboKeyboard blekeyboard;
+BleComboMouse blemouse(&blekeyboard);
 std::vector<keypress> keys;
 const unsigned long repeatDelay = 500; // auto-repeat delay
 const unsigned long repeatRate = 50;   // auto-repeat rate
@@ -85,8 +87,9 @@ void onMouse(hid_mouse_report_t report, uint8_t last_buttons) {
 
 void setup() {
 	Serial.begin(115200);
-	blemouse.begin();
 	blekeyboard.begin();
+	blemouse.begin();
+	Serial.println("Starting USB Host...");
 	usbhost.begin();
 	usbhost.setHIDLocal(HID_LOCAL_French);
 	usbhost.setKeyboardCallback(onKeyboard);

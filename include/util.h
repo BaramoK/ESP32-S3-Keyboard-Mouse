@@ -2,10 +2,10 @@
 #define __util_H__
 
 #include <EspUsbHost.h>
-#include <BleKeyboard.h>
-#include <BleMouse.h>
-// #include <BleComboKeyboard.h>
-// #include <BleComboMouse.h>
+// #include <BleKeyboard.h>
+// #include <BleMouse.h>
+#include <BleComboKeyboard.h>
+#include <BleComboMouse.h>
 #include <map>
 #include <vector>
 
@@ -64,8 +64,8 @@ std::map<uint8_t, uint8_t> keycodes = {
 	{ 0x37, '.' },
 	{ 0x38, '/' },
 	{ 0x87, 0x00 }, // question mark
-	{ 0x64, 0x00 }, // backslash
-	{ 0x53, 0x53 }, // numlock
+	{ 0x64, KEY_BACKSLASH }, // backslash
+	{ 0x53, KEY_NUM_LOCK }, // numlock
 	{ 0xE0, KEY_LEFT_CTRL },
 	{ 0xE1, KEY_LEFT_SHIFT },
 	{ 0xE2, KEY_LEFT_ALT },
@@ -83,7 +83,7 @@ std::map<uint8_t, uint8_t> keycodes = {
 	{ 0x28, KEY_RETURN },
 	{ 0x29, KEY_ESC },
 	{ 0x49, KEY_INSERT },
-	{ 0x46, KEY_PRTSC },
+	{ 0x46, KEY_PRTSC},
 	{ 0x4C, KEY_DELETE },
 	{ 0x4B, KEY_PAGE_UP },
 	{ 0x4E, KEY_PAGE_DOWN },
@@ -102,22 +102,22 @@ std::map<uint8_t, uint8_t> keycodes = {
 	{ 0x43, KEY_F10 },
 	{ 0x44, KEY_F11 },
 	{ 0x45, KEY_F12 },
-	{ 0x54, KEY_NUM_SLASH },
-	{ 0x55, KEY_NUM_ASTERISK },
-	{ 0x56, KEY_NUM_MINUS },
-	{ 0x57, KEY_NUM_PLUS },
-	{ 0x58, KEY_NUM_ENTER },
-	{ 0x59, KEY_NUM_1 },
-	{ 0x5A, KEY_NUM_2 },
-	{ 0x5B, KEY_NUM_3 },
-	{ 0x5C, KEY_NUM_4 },
-	{ 0x5D, KEY_NUM_5 },
-	{ 0x5E, KEY_NUM_6 },
-	{ 0x5F, KEY_NUM_7 },
-	{ 0x60, KEY_NUM_8 },
-	{ 0x61, KEY_NUM_9 },
-	{ 0x62, KEY_NUM_0 },
-	{ 0x63, KEY_NUM_PERIOD }
-};
+ 	{ 0x54, KEY_NUM_SLASH },
+ 	{ 0x55, KEY_NUM_ASTERISK },
+ 	{ 0x56, KEY_NUM_MINUS },
+ 	{ 0x57, KEY_NUM_PLUS },
+ 	{ 0x58, KEY_NUM_ENTER },
+ 	{ 0x59, KEY_NUM_1 },
+ 	{ 0x5A, KEY_NUM_2 },
+ 	{ 0x5B, KEY_NUM_3 },
+ 	{ 0x5C, KEY_NUM_4 },
+ 	{ 0x5D, KEY_NUM_5 },
+ 	{ 0x5E, KEY_NUM_6 },
+ 	{ 0x5F, KEY_NUM_7 },
+ 	{ 0x60, KEY_NUM_8 },
+ 	{ 0x61, KEY_NUM_9 },
+ 	{ 0x62, KEY_NUM_0 },
+ 	{ 0x63, KEY_NUM_PERIOD },
+ };
 
 #endif
