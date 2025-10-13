@@ -2,6 +2,7 @@
 
 EspUsbHost usbhost;
 BleKeyboard blekeyboard;
+BleMouse blemouse;
 std::vector<keypress> keys;
 const unsigned long repeatDelay = 500; // auto-repeat delay
 const unsigned long repeatRate = 50;   // auto-repeat rate
@@ -55,13 +56,30 @@ void onKeyboard(hid_keyboard_report_t report, hid_keyboard_report_t last_report)
 		}
 	}
 }
+void onMouse(hid_mouse_report_t report, uint8_t last_buttons) {
+	
+	blemouse.move(report.x, report.y, report.wheel, report.pan);
+	if (report.buttons & 0x01) blemouse.press(MOUSE_LEFT);
+	else blemouse.release(MOUSE_LEFT);
+	if (report.buttons & 0x02) blemouse.press(MOUSE_RIGHT);
+	else blemouse.release(MOUSE_RIGHT);
+	if (report.buttons & 0x04) blemouse.press(MOUSE_MIDDLE);
+	else blemouse.release(MOUSE_MIDDLE);
+	if (report.buttons & 0x08) blemouse.press(MOUSE_BACK);
+	else blemouse.release(MOUSE_BACK);
+	if (report.buttons & 0x10) blemouse.press(MOUSE_FORWARD);
+	else blemouse.release(MOUSE_FORWARD);
+}
 
 void setup() {
 	Serial.begin(115200);
 	blekeyboard.begin();
+	blemouse.begin();
 	usbhost.begin();
 	usbhost.setHIDLocal(HID_LOCAL_French);
 	usbhost.setKeyboardCallback(onKeyboard);
+	usbhost.setMouseCallback(onMouse);
+	Serial.println("Setup complete");
 }
 
 void loop() {
@@ -74,4 +92,6 @@ void loop() {
 			}
 		}
 	}
+	blekeyboard.flush();
+	delay(1);
 }
