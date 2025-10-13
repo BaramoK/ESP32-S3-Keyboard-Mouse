@@ -1,6 +1,6 @@
-# ESP32 Keyboard
+# ESP32-S3 Keyboard
 
-This project utilizes the ESP32-S3 to transform a wired USB keyboard into a wireless keyboard using USB OTG capabilities and HID Bluetooth.
+This project uses an ESP32‑S3 to turn a wired USB keyboard into a wireless one by hosting it over USB OTG and broadcasting keystrokes via Bluetooth HID.
 
 ## Overview
 
