@@ -9,9 +9,16 @@ const unsigned long repeatRate = 50;   // auto-repeat rate
 
 void onKeyboard(hid_keyboard_report_t report, hid_keyboard_report_t last_report) {
 	unsigned long currentTime = millis();
-	if (report.modifier & 0x01) blekeyboard.press(KEY_LEFT_CTRL);
-	else blekeyboard.release(KEY_LEFT_CTRL);
-	if (report.modifier & 0x02) blekeyboard.press(KEY_LEFT_SHIFT);
+	if (report.modifier & 0x01){
+		blekeyboard.press(KEY_LEFT_CTRL);
+		Serial.print("Key pressed: ");
+		Serial.println(KEY_LEFT_CTRL);
+	}else{
+		blekeyboard.release(KEY_LEFT_CTRL);
+	};
+	if (report.modifier & 0x02) {
+		blekeyboard.press(KEY_LEFT_SHIFT);
+	}
 	else blekeyboard.release(KEY_LEFT_SHIFT);
 	if (report.modifier & 0x04) blekeyboard.press(KEY_LEFT_ALT);
 	else blekeyboard.release(KEY_LEFT_ALT);
@@ -33,6 +40,8 @@ void onKeyboard(hid_keyboard_report_t report, hid_keyboard_report_t last_report)
 			if (it == keys.end()) {
 				keys.push_back({key, currentTime});
 				blekeyboard.press(keycodes[key]);
+				Serial.print("Key pressed: ");
+				Serial.println(keycodes[key]);
 			} else {
 				it->pressTime = currentTime;
 			}
@@ -71,13 +80,13 @@ void onMouse(hid_mouse_report_t report, uint8_t last_buttons) {
 	else blemouse.release(MOUSE_FORWARD);
 	Serial.print("Mouse: ");
 	Serial.print("X="); Serial.print(report.x);
-	Serial.print(" Y="); Serial.print(report.y);		
+	Serial.print(" Y="); Serial.println(report.y);		
 }
 
 void setup() {
 	Serial.begin(115200);
-	blekeyboard.begin();
 	blemouse.begin();
+	blekeyboard.begin();
 	usbhost.begin();
 	usbhost.setHIDLocal(HID_LOCAL_French);
 	usbhost.setKeyboardCallback(onKeyboard);
@@ -95,6 +104,6 @@ void loop() {
 			}
 		}
 	}
-	blekeyboard.flush();
+	// blekeyboard.flush();
 	delay(1);
 }
