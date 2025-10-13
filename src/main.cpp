@@ -42,8 +42,7 @@ void onKeyboard(hid_keyboard_report_t report, hid_keyboard_report_t last_report)
 			if (it == keys.end()) {
 				keys.push_back({key, currentTime});
 				blekeyboard.press(keycodes[key]);
-				Serial.print("Key pressed: ");
-				Serial.println(keycodes[key]);
+				Serial.print("Key pressed: "); Serial.println(keycodes[key]);
 			} else {
 				it->pressTime = currentTime;
 			}
@@ -80,9 +79,7 @@ void onMouse(hid_mouse_report_t report, uint8_t last_buttons) {
 	else blemouse.release(MOUSE_BACK);
 	if (report.buttons & 0x10) blemouse.press(MOUSE_FORWARD);
 	else blemouse.release(MOUSE_FORWARD);
-	Serial.print("Mouse: ");
-	Serial.print("X="); Serial.print(report.x);
-	Serial.print(" Y="); Serial.println(report.y);		
+	Serial.print("Mouse: "); Serial.print("X="); Serial.print(report.x); Serial.print(" Y="); Serial.println(report.y);		
 }
 
 void setup() {
