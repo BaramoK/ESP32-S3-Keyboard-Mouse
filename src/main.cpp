@@ -60,7 +60,7 @@ void setup() {
 	Serial.begin(115200);
 	blekeyboard.begin();
 	usbhost.begin();
-	usbhost.setHIDLocal(HID_LOCAL_Portuguese);
+	usbhost.setHIDLocal(HID_LOCAL_French);
 	usbhost.setKeyboardCallback(onKeyboard);
 }
 
