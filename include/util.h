@@ -3,6 +3,7 @@
 
 #include <EspUsbHost.h>
 #include <BleKeyboard.h>
+#include <BleMouse.h>
 #include <map>
 #include <vector>
 
