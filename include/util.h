@@ -2,13 +2,14 @@
 #define __util_H__
 
 #include <EspUsbHost.h>
-// #include <BleKeyboard.h>
-// #include <BleMouse.h>
 #include <BleComboKeyboard.h>
 #include <BleComboMouse.h>
 #include <map>
 #include <vector>
+#include <Adafruit_NeoPixel.h>
 
+#define RGB_BUILTIN 48
+#define LED_COUNT  1
 struct keypress {
 	uint8_t key;
 	unsigned long pressTime;
