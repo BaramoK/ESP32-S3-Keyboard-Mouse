@@ -1,11 +1,11 @@
 #include "util.h"
 
 EspUsbHost usbhost;
-// BleKeyboard blekeyboard;
-// BleMouse blemouse;
 BleComboKeyboard blekeyboard;
 BleComboMouse blemouse(&blekeyboard);
 std::vector<keypress> keys;
+Adafruit_NeoPixel strip(LED_COUNT, RGB_BUILTIN, NEO_GRB + NEO_KHZ800);
+
 const unsigned long repeatDelay = 500; // auto-repeat delay
 const unsigned long repeatRate = 50;   // auto-repeat rate
 
@@ -96,6 +96,7 @@ void setup() {
 
 void loop() {
 	usbhost.task();
+	// key auto-repeat handling
 	unsigned long currentTime = millis();
 	for (const auto& keypress : keys) {
 		if (currentTime - keypress.pressTime >= repeatDelay) {
@@ -104,6 +105,5 @@ void loop() {
 			}
 		}
 	}
-	// blekeyboard.flush();
 	delay(1);
 }
