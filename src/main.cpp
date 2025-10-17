@@ -42,7 +42,7 @@ void onKeyboard(hid_keyboard_report_t report, hid_keyboard_report_t last_report)
 			if (it == keys.end()) {
 				keys.push_back({key, currentTime});
 				blekeyboard.press(keycodes[key]);
-				Serial.print("Key pressed: "); Serial.println(keycodes[key]); 
+				Serial.printf("Keyboard Key: %d\n", keycodes[key]);
 			} else {
 				it->pressTime = currentTime;
 			}
@@ -79,8 +79,6 @@ void onKeyboard(hid_keyboard_report_t report, hid_keyboard_report_t last_report)
     if (dx != 0 || dy != 0 || wheel != 0) blemouse.move(dx, dy, wheel);
 	//add debug info
 	Serial.printf("Mouse Move: dx=%d, dy=%d, wheel=%d, buttons=%02X\n", dx, dy, wheel, report.buttons);
-	delay(10);
-
  }
 
 
@@ -98,9 +96,9 @@ void setup() {
 
 void loop() {
 	// Send a message every 1 milliseconds
-	static unsigned long lastSend = 0;
-	if (millis() - lastSend > 1) {
+	static unsigned long lastLoop = 0;
+	if (millis() - lastLoop > 1) {
 		usbhost.task();
-		lastSend = millis();
+		lastLoop = millis();
 	}
 }
