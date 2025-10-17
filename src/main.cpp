@@ -66,28 +66,30 @@ void onKeyboard(hid_keyboard_report_t report, hid_keyboard_report_t last_report)
 		}
 	}
 }
-void onMouse(hid_mouse_report_t report, uint8_t last_buttons) {
-	
-	blemouse.move(report.x, report.y, report.wheel, report.pan);
-	if (report.buttons & 0x01) blemouse.press(MOUSE_LEFT);
-	else blemouse.release(MOUSE_LEFT);
-	if (report.buttons & 0x02) blemouse.press(MOUSE_RIGHT);
-	else blemouse.release(MOUSE_RIGHT);
-	if (report.buttons & 0x04) blemouse.press(MOUSE_MIDDLE);
-	else blemouse.release(MOUSE_MIDDLE);
-	if (report.buttons & 0x08) blemouse.press(MOUSE_BACK);
-	else blemouse.release(MOUSE_BACK);
-	if (report.buttons & 0x10) blemouse.press(MOUSE_FORWARD);
-	else blemouse.release(MOUSE_FORWARD);
-	Serial.print("Mouse: "); Serial.print("X="); Serial.print(report.x); Serial.print(" Y="); Serial.println(report.y);		
-}
+ void onMouse(hid_mouse_report_t report, uint8_t last_buttons) {
+    uint8_t changed = report.buttons ^ last_buttons;
+    if (changed & MOUSE_BUTTON_LEFT)   (report.buttons & MOUSE_BUTTON_LEFT)   ? blemouse.press(MOUSE_LEFT)   : blemouse.release(MOUSE_LEFT);
+    if (changed & MOUSE_BUTTON_RIGHT)  (report.buttons & MOUSE_BUTTON_RIGHT)  ? blemouse.press(MOUSE_RIGHT)  : blemouse.release(MOUSE_RIGHT);
+    if (changed & MOUSE_BUTTON_MIDDLE) (report.buttons & MOUSE_BUTTON_MIDDLE) ? blemouse.press(MOUSE_MIDDLE) : blemouse.release(MOUSE_MIDDLE);
+
+    // Mouvement + molette (wheel sur 8 bits signé)
+    int8_t dx = (int8_t)report.x;
+    int8_t dy = (int8_t)report.y;
+    int8_t wheel = (int8_t)report.wheel;
+    if (dx != 0 || dy != 0 || wheel != 0) blemouse.move(dx, dy, wheel);
+	//add debug info
+	Serial.printf("Mouse Move: dx=%d, dy=%d, wheel=%d, buttons=%02X\n", dx, dy, wheel, report.buttons);
+	delay(10);
+
+ }
+
 
 void setup() {
 	Serial.begin(115200);
-	blekeyboard.begin();
-	blemouse.begin();
 	Serial.println("Starting USB Host...");
 	usbhost.begin();
+	blekeyboard.begin();
+	blemouse.begin();
 	usbhost.setHIDLocal(HID_LOCAL_French);
 	usbhost.setKeyboardCallback(onKeyboard);
 	usbhost.setMouseCallback(onMouse);
@@ -96,14 +98,5 @@ void setup() {
 
 void loop() {
 	usbhost.task();
-	// key auto-repeat handling
-	unsigned long currentTime = millis();
-	for (const auto& keypress : keys) {
-		if (currentTime - keypress.pressTime >= repeatDelay) {
-			if ((currentTime - keypress.pressTime - repeatDelay) % repeatRate == 0) {
-				blekeyboard.press(keycodes[keypress.key]);
-			}
-		}
-	}
-	delay(1);
+	delay(10);
 }
