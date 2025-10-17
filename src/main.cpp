@@ -42,7 +42,7 @@ void onKeyboard(hid_keyboard_report_t report, hid_keyboard_report_t last_report)
 			if (it == keys.end()) {
 				keys.push_back({key, currentTime});
 				blekeyboard.press(keycodes[key]);
-				Serial.print("Key pressed: "); Serial.println(keycodes[key]);
+				Serial.print("Key pressed: "); Serial.println(keycodes[key]); 
 			} else {
 				it->pressTime = currentTime;
 			}
@@ -97,6 +97,10 @@ void setup() {
 }
 
 void loop() {
-	usbhost.task();
-	delay(10);
+	// Send a message every 1 milliseconds
+	static unsigned long lastSend = 0;
+	if (millis() - lastSend > 1) {
+		usbhost.task();
+		lastSend = millis();
+	}
 }
