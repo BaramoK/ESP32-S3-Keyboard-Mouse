@@ -6,7 +6,6 @@
 #include <BleComboMouse.h>
 #include <map>
 #include <vector>
-#include <Adafruit_NeoPixel.h>
 
 #define RGB_BUILTIN 48
 #define LED_COUNT  1
