@@ -101,7 +101,7 @@ void dump_report(const uint8_t* rpt, size_t len) {
 // Mouse callback
  void onMouse(hid_mouse_report_t report, uint8_t last_buttons) {
     uint8_t changed = report.buttons ^ last_buttons;
-	parse_mouse_report((const uint8_t*)&report, sizeof(report));
+	//parse_mouse_report((const uint8_t*)&report, sizeof(report));
 	
 	// Boutons
     if (changed & MOUSE_BUTTON_LEFT)   (report.buttons & MOUSE_BUTTON_LEFT)   ? blemouse.press(MOUSE_LEFT)   : blemouse.release(MOUSE_LEFT);
