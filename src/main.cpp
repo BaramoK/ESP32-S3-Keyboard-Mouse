@@ -127,7 +127,6 @@ void setup() {
 	usbhost.setHIDLocal(HID_LOCAL_French);
 	usbhost.setKeyboardCallback(onKeyboard); Serial.println("--- set KeyboardCallback done");
 	usbhost.setMouseCallback(onMouse); Serial.println("--- set MouseCallback done");
-	usbhost.setMouseCallback(onMouse); Serial.println("--- set MouseCallback done");
 	Serial.println("Setup complete");
 }
 
