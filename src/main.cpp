@@ -129,18 +129,6 @@ void setup() {
 }
 
 void loop() {
-	// resete esp32 when shortcut key is pressed
-	// if (blekeyboard.isConnected()) {
-	// 	if (blekeyboard.press(KEY_LEFT_CTRL) && blekeyboard.press(KEY_LEFT_SHIFT) && blekeyboard.press(KEY_DOWN_ARROW)) {
-	// 		Serial.println("Resetting ESP32...");
-	// 		blekeyboard.releaseAll();
-	// 		blekeyboard.end();
-	// 		delay(1000);
-	// 		ESP.restart();
-	// 	}
-	// }
-
-	// Send a message every 1 milliseconds
 	static unsigned long lastLoop = 0;
 	if (millis() - lastLoop > 10) {
 		usbhost.task();
