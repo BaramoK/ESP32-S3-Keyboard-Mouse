@@ -101,20 +101,18 @@ void dump_report(const uint8_t* rpt, size_t len) {
 // Mouse callback
  void onMouse(hid_mouse_report_t report, uint8_t last_buttons) {
     uint8_t changed = report.buttons ^ last_buttons;
-	//parse_mouse_report((const uint8_t*)&report, sizeof(report));
+	parse_mouse_report((const uint8_t*)&report, sizeof(report));
 	
-	// Boutons
-    if (changed & MOUSE_BUTTON_LEFT)   (report.buttons & MOUSE_BUTTON_LEFT)   ? blemouse.press(MOUSE_LEFT)   : blemouse.release(MOUSE_LEFT);
-    if (changed & MOUSE_BUTTON_RIGHT)  (report.buttons & MOUSE_BUTTON_RIGHT)  ? blemouse.press(MOUSE_RIGHT)  : blemouse.release(MOUSE_RIGHT);
-    if (changed & MOUSE_BUTTON_MIDDLE) (report.buttons & MOUSE_BUTTON_MIDDLE) ? blemouse.press(MOUSE_MIDDLE) : blemouse.release(MOUSE_MIDDLE);
-
     // Mouvement + molette (wheel sur 8 bits signé)
     int8_t dx = (int8_t)report.x;
     int8_t dy = (int8_t)report.y;
     int8_t wheel = (int8_t)report.wheel;
     if (dx != 0 || dy != 0 || wheel != 0) blemouse.move(dx, dy, wheel);
-	//add debug info
-	// Serial.printf("Mouse Move: dx=%d, dy=%d, wheel=%d, buttons=%02X\n", dx, dy, wheel, report.buttons);
+
+	// Boutons
+    if (changed & MOUSE_BUTTON_LEFT)   (report.buttons & MOUSE_BUTTON_LEFT)   ? blemouse.press(MOUSE_LEFT)   : blemouse.release(MOUSE_LEFT);
+    if (changed & MOUSE_BUTTON_RIGHT)  (report.buttons & MOUSE_BUTTON_RIGHT)  ? blemouse.press(MOUSE_RIGHT)  : blemouse.release(MOUSE_RIGHT);
+    if (changed & MOUSE_BUTTON_MIDDLE) (report.buttons & MOUSE_BUTTON_MIDDLE) ? blemouse.press(MOUSE_MIDDLE) : blemouse.release(MOUSE_MIDDLE);
  }
 
 
@@ -131,6 +129,17 @@ void setup() {
 }
 
 void loop() {
+	// resete esp32 when shortcut key is pressed
+	// if (blekeyboard.isConnected()) {
+	// 	if (blekeyboard.press(KEY_LEFT_CTRL) && blekeyboard.press(KEY_LEFT_SHIFT) && blekeyboard.press(KEY_DOWN_ARROW)) {
+	// 		Serial.println("Resetting ESP32...");
+	// 		blekeyboard.releaseAll();
+	// 		blekeyboard.end();
+	// 		delay(1000);
+	// 		ESP.restart();
+	// 	}
+	// }
+
 	// Send a message every 1 milliseconds
 	static unsigned long lastLoop = 0;
 	if (millis() - lastLoop > 10) {
