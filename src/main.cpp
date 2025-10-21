@@ -37,9 +37,15 @@ void onKeyboard(hid_keyboard_report_t report, hid_keyboard_report_t last_report)
 		if (key != 0) {
 			auto it = std::find_if(keys.begin(), keys.end(), [key](const keypress& kp) { return kp.key == key; });
 			if (it == keys.end()) {
-				// numlock off handling
 				keys.push_back({key, currentTime});
-				if (numlockState == 0 && keycodes[key] >= KEY_NUM_SLASH && keycodes[key] <= KEY_NUM_9) {
+				if (keycodes[key] == KEY_NUM_LOCK) {
+						// check numlock state
+						if ((last_report.modifier & KEY_NUM_LOCK) == 0 || (report.modifier & KEY_NUM_LOCK) != 0) {
+							// CTRL key state changed
+							numlockState = !numlockState;
+							Serial.printf("Numlock state changed: %s\n", numlockState ? "ON" : "OFF");
+						}
+				} else if (numlockState == 0 && keycodes[key] >= KEY_NUM_SLASH && keycodes[key] <= KEY_NUM_9) {
 					// simulate mouse movement with 2,4,6,8 arrow keys when num lock is off
 					int8_t mouseX = 0;
 					int8_t mouseY = 0;
@@ -76,20 +82,13 @@ void onKeyboard(hid_keyboard_report_t report, hid_keyboard_report_t last_report)
 					}
 					// num 5 as right click
 					if (keycodes[key] == KEY_NUM_5) {
-						blemouse.click(MOUSE_RIGHT);
-						Serial.println("Mouse Right Click");
+						blemouse.click(MOUSE_LEFT);
+						Serial.println("Mouse left Click");
 					}
 					if (mouseX != 0 || mouseY != 0) {
 						blemouse.move(mouseX, mouseY);
 						Serial.printf("Mouse Move: dx=%d, dy=%d\n", mouseX, mouseY);
 					}
-				} else if (keycodes[key] == KEY_NUM_LOCK) {
-						// check numlock state
-						if ((last_report.modifier & KEY_NUM_LOCK) == 0 || (report.modifier & KEY_NUM_LOCK) != 0) {
-							// CTRL key state changed
-							numlockState = !numlockState;
-							Serial.printf("Numlock state changed: %s\n", numlockState ? "ON" : "OFF");
-						}
 				} else {
 					// New key press	
 					blekeyboard.press(keycodes[key]);
@@ -119,15 +118,13 @@ void onKeyboard(hid_keyboard_report_t report, hid_keyboard_report_t last_report)
 		}
 	}
 }
-
 // debug mouse events
 void dump_report(const uint8_t* rpt, size_t len) {
 	printf("HID rpt (%u):", (unsigned)len);
 	for (size_t i=0;i<len;i++) printf(" %02X", rpt[i]);
 	printf("\n");
 }
-
- void parse_mouse_report(const uint8_t* rpt, size_t len) {
+void parse_mouse_report(const uint8_t* rpt, size_t len) {
 	if (len == 0) return;
 
 	uint8_t id = rpt[0];
@@ -156,7 +153,7 @@ void dump_report(const uint8_t* rpt, size_t len) {
 	}
 }
 // Mouse callback
- void onMouse(hid_mouse_report_t report, uint8_t last_buttons) {
+void onMouse(hid_mouse_report_t report, uint8_t last_buttons) {
 	uint8_t changed = report.buttons ^ last_buttons;
 	parse_mouse_report((const uint8_t*)&report, sizeof(report));
 	// Mouse movement and wheel
@@ -168,7 +165,7 @@ void dump_report(const uint8_t* rpt, size_t len) {
 	if (changed & MOUSE_BUTTON_LEFT)   (report.buttons & MOUSE_BUTTON_LEFT)   ? blemouse.press(MOUSE_LEFT)   : blemouse.release(MOUSE_LEFT);
 	if (changed & MOUSE_BUTTON_RIGHT)  (report.buttons & MOUSE_BUTTON_RIGHT)  ? blemouse.press(MOUSE_RIGHT)  : blemouse.release(MOUSE_RIGHT);
 	if (changed & MOUSE_BUTTON_MIDDLE) (report.buttons & MOUSE_BUTTON_MIDDLE) ? blemouse.press(MOUSE_MIDDLE) : blemouse.release(MOUSE_MIDDLE);
- }
+}
 
 void usbhostTask(void *pvParameters) {
 	while (1) {
