@@ -39,7 +39,15 @@ void onKeyboard(hid_keyboard_report_t report, hid_keyboard_report_t last_report)
 			if (it == keys.end()) {
 				// numlock off handling
 				keys.push_back({key, currentTime});
-				if (numlockState == 0 && keycodes[key] >= KEY_NUM_SLASH && keycodes[key] <= KEY_NUM_9) {
+
+				if (keycodes[key] == KEY_NUM_LOCK) {
+						// check numlock state
+						if ((last_report.modifier & KEY_NUM_LOCK) == 0 || (report.modifier & KEY_NUM_LOCK) != 0) {
+							// CTRL key state changed
+							numlockState = !numlockState;
+							Serial.printf("Numlock state changed: %s\n", numlockState ? "ON" : "OFF");
+						}
+				} else if (numlockState == 0 && keycodes[key] >= KEY_NUM_SLASH && keycodes[key] <= KEY_NUM_9) {
 					// simulate mouse movement with 2,4,6,8 arrow keys when num lock is off
 					int8_t mouseX = 0;
 					int8_t mouseY = 0;
@@ -76,20 +84,13 @@ void onKeyboard(hid_keyboard_report_t report, hid_keyboard_report_t last_report)
 					}
 					// num 5 as right click
 					if (keycodes[key] == KEY_NUM_5) {
-						blemouse.click(MOUSE_RIGHT);
-						Serial.println("Mouse Right Click");
+						blemouse.click(MOUSE_LEFT);
+						Serial.println("Mouse left Click");
 					}
 					if (mouseX != 0 || mouseY != 0) {
 						blemouse.move(mouseX, mouseY);
 						Serial.printf("Mouse Move: dx=%d, dy=%d\n", mouseX, mouseY);
 					}
-				} else if (keycodes[key] == KEY_NUM_LOCK) {
-						// check numlock state
-						if ((last_report.modifier & KEY_NUM_LOCK) == 0 || (report.modifier & KEY_NUM_LOCK) != 0) {
-							// CTRL key state changed
-							numlockState = !numlockState;
-							Serial.printf("Numlock state changed: %s\n", numlockState ? "ON" : "OFF");
-						}
 				} else {
 					// New key press	
 					blekeyboard.press(keycodes[key]);
