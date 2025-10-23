@@ -8,7 +8,7 @@ The ESP32-S3 microcontroller is used to enable USB OTG (On-The-Go) functionality
 
 ## Features
 
-- **USB OTG Support**: Allows the ESP32-S3 to interface with USB keyboards, supporting auto-repeat, modifier keys, and keyboard LED toggling.
+- **USB OTG Support**: Allows the ESP32-S3 to interface with USB keyboards/Mouses, supporting auto-repeat, modifier keys, and keyboard LED toggling.
 - **Bluetooth HID**: Converts USB keyboard input into Bluetooth signals, making it compatible with various Bluetooth-enabled devices.
 
 ## Getting Started
