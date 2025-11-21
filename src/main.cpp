@@ -1,4 +1,10 @@
 #include "util.h"
+#include <Arduino.h>
+#include <FS.h>
+#include <SPIFFS.h>
+#include <ArduinoJson.h>
+#include <WiFi.h>
+#include <ArduinoOTA.h>
 
 EspUsbHost usbhost;
 BleComboKeyboard blekeyboard;
@@ -6,22 +12,43 @@ BleComboMouse blemouse(&blekeyboard);
 // BleKeyboard blekeyboard;
 // BleMouse blemouse;
 std::vector<keypress> keys;
-
 const unsigned long repeatDelay = 500; // auto-repeat delay
 const unsigned long repeatRate = 50;   // auto-repeat rate
+// WiFi credentials
+const char* ssid     = NULL;
+const char* password = NULL;
 
+void loadWiFiCredentials() {
+    File file = SPIFFS.open("/wifi_config.json", "r");
+    if (!file) {
+        Serial.println("Failed to open wifi_config.json");
+        return;
+    }
+
+    DynamicJsonDocument doc(1024);
+    DeserializationError error = deserializeJson(doc, file);
+    if (error) {
+        Serial.println("Failed to parse wifi_config.json");
+        return;
+    }
+
+    ssid = doc["ssid"];
+    password = doc["password"];
+    file.close();
+}
+// Keyboard callback
 void onKeyboard(hid_keyboard_report_t report, hid_keyboard_report_t last_report) {
 	unsigned long currentTime = millis();
 	static bool numlockState = false;
 	// Handle modifier keys
-	if (report.modifier & 0x01) blekeyboard.press(KEY_LEFT_CTRL); 
+	if (report.modifier & 0x08) blekeyboard.press(KEY_LEFT_GUI);
+	else blekeyboard.release(KEY_LEFT_GUI);
+	if (report.modifier & 0x01) blekeyboard.press(KEY_LEFT_CTRL);
 	else blekeyboard.release(KEY_LEFT_CTRL);
 	if (report.modifier & 0x02) blekeyboard.press(KEY_LEFT_SHIFT);
 	else blekeyboard.release(KEY_LEFT_SHIFT);
 	if (report.modifier & 0x04) blekeyboard.press(KEY_LEFT_ALT);
 	else blekeyboard.release(KEY_LEFT_ALT);
-	if (report.modifier & 0x08) blekeyboard.press(KEY_LEFT_GUI);
-	else blekeyboard.release(KEY_LEFT_GUI);
 	if (report.modifier & 0x10) blekeyboard.press(KEY_RIGHT_CTRL);
 	else blekeyboard.release(KEY_RIGHT_CTRL);
 	if (report.modifier & 0x20) blekeyboard.press(KEY_RIGHT_SHIFT);
@@ -30,8 +57,7 @@ void onKeyboard(hid_keyboard_report_t report, hid_keyboard_report_t last_report)
 	else blekeyboard.release(KEY_RIGHT_ALT);
 	if (report.modifier & 0x80) blekeyboard.press(KEY_RIGHT_GUI);
 	else blekeyboard.release(KEY_RIGHT_GUI);
-
-	// Press new keys	
+	// Press new keys
 	for (uint8_t i = 0; i < 6; ++i) {
 		uint8_t key = report.keycode[i];
 		if (key != 0) {
@@ -90,7 +116,7 @@ void onKeyboard(hid_keyboard_report_t report, hid_keyboard_report_t last_report)
 						Serial.printf("Mouse Move: dx=%d, dy=%d\n", mouseX, mouseY);
 					}
 				} else {
-					// New key press	
+					// New key press
 					blekeyboard.press(keycodes[key]);
 					Serial.printf("Keyboard Key: %d\n", keycodes[key]);
 				}
@@ -100,7 +126,7 @@ void onKeyboard(hid_keyboard_report_t report, hid_keyboard_report_t last_report)
 			}
 		}
 	}
-	// Release keys that are no longer pressed	
+	// Release keys that are no longer pressed
 	for (auto it = keys.begin(); it != keys.end();) {
 		bool autorepeat = false;
 		for (uint8_t i = 0; i < 6; ++i) {
@@ -109,7 +135,6 @@ void onKeyboard(hid_keyboard_report_t report, hid_keyboard_report_t last_report)
 				break;
 			}
 		}
-
 		if (!autorepeat) {
 			blekeyboard.release(keycodes[it->key]);
 			it = keys.erase(it);
@@ -126,11 +151,9 @@ void dump_report(const uint8_t* rpt, size_t len) {
 }
 void parse_mouse_report(const uint8_t* rpt, size_t len) {
 	if (len == 0) return;
-
 	uint8_t id = rpt[0];
 	const uint8_t* p = rpt + 1;
 	size_t n = len - 1;
-
 	switch (id) {
 	case 1: { // Mouse X/Y + Buttons
 		if (n < 3) return;
@@ -139,14 +162,12 @@ void parse_mouse_report(const uint8_t* rpt, size_t len) {
 		int8_t  dy = (int8_t)p[2];
 		printf("Mouse Move: dx=%d, dy=%d, buttons=%02X\n", dx, dy, buttons);
 	} break;
-
 	case 2: { // Wheel (vertical)
 		if (n >= 1) {
 		int8_t wheel = (int8_t)p[0];
 		printf("Wheel: %d\n", wheel);
 		}
 	} break;
-
 	default:
 		dump_report(rpt, len);
 		break;
@@ -166,7 +187,6 @@ void onMouse(hid_mouse_report_t report, uint8_t last_buttons) {
 	if (changed & MOUSE_BUTTON_RIGHT)  (report.buttons & MOUSE_BUTTON_RIGHT)  ? blemouse.press(MOUSE_RIGHT)  : blemouse.release(MOUSE_RIGHT);
 	if (changed & MOUSE_BUTTON_MIDDLE) (report.buttons & MOUSE_BUTTON_MIDDLE) ? blemouse.press(MOUSE_MIDDLE) : blemouse.release(MOUSE_MIDDLE);
 }
-
 void usbhostTask(void *pvParameters) {
 	while (1) {
 		// Run USB host task
@@ -174,10 +194,62 @@ void usbhostTask(void *pvParameters) {
 		vTaskDelay(1 / portTICK_PERIOD_MS); // delay to allow other tasks to run
 	}
 }
+void otaTask(void *pvParameters) {
+	while (1) {
+		// Run OTA host task
+		ArduinoOTA.handle();
+		vTaskDelay(1 / portTICK_PERIOD_MS); // delay to allow other tasks to run
+	}
+}
 void setup() {
-	Serial.println("Setup strarting...");
 	// Initialize Serial for debugging
 	Serial.begin(115200);
+	Serial.println("Setup starting...");
+	// Initialize SPIFFS
+	if (!SPIFFS.begin(true)) {
+		Serial.println("An Error has occurred while mounting SPIFFS");
+		return;
+	}
+	Serial.println("\nConnecting to WiFi...");
+	// Connect to WiFi
+	WiFi.mode(WIFI_MODE_STA);
+	if (ssid == NULL || password == NULL) {
+		Serial.println("Loading WiFi credentials from wifi_config.json");
+		// Load WiFi credentials from wifi_config.json
+		File file = SPIFFS.open("/wifi_config.json", "r");
+		if (!file) {
+			Serial.println("Failed to open wifi_config.json");
+			return;
+		}
+		DynamicJsonDocument doc(1024);
+		DeserializationError error = deserializeJson(doc, file);
+		if (error) {
+			Serial.println("Failed to parse wifi_config.json");
+			return;
+		}
+		ssid = doc["ssid"];
+		password = doc["password"];
+		file.close();
+	}
+	loadWiFiCredentials();
+	WiFi.begin(ssid, password);
+	while (WiFi.status() != WL_CONNECTED) { delay(500); Serial.print("."); }
+	Serial.println("\nWiFi OK, IP: " + WiFi.localIP().toString());
+	// Nom mDNS de l’ESP sur le réseau
+	ArduinoOTA.setHostname("esp32-keyboard.local");
+	// Mot de passe OTA (recommandé)
+	ArduinoOTA.setPassword("monpassOTA");
+	// Callbacks (optionnel mais pratique)
+	ArduinoOTA
+		.onStart([]() { Serial.println("OTA Start"); })
+		.onEnd([]()   { Serial.println("\nOTA End"); })
+		.onProgress([](unsigned int progress, unsigned int total) {
+		Serial.printf("Progress: %u%%\r", (progress * 100) / total);
+		})
+		.onError([](ota_error_t error) {
+		Serial.printf("Error[%u]\n", error);
+		});
+	ArduinoOTA.begin();
 	// Initialize BLE Keyboard and USB Host
 	usbhost.begin(); Serial.println("- Starting USB Host done");
 	blekeyboard.begin(); Serial.println("- Starting BLE Keyboard done");
@@ -187,11 +259,12 @@ void setup() {
 	// Set keyboard and mouse callbacks
 	usbhost.setKeyboardCallback(onKeyboard); Serial.println("--- set KeyboardCallback done");
 	usbhost.setMouseCallback(onMouse); Serial.println("--- set MouseCallback done");
+	//create OTA task
+	xTaskCreatePinnedToCore(otaTask, "otahostTask", 4096, NULL, 1, NULL, 1); Serial.println("- Creating otaTask done");
 	// Create USB host task
 	xTaskCreatePinnedToCore(usbhostTask, "usbhostTask", 4096, NULL, 1, NULL, 1); Serial.println("- Creating usbhostTask done");
 	Serial.println("Setup complete");
 }
-
 void loop() {
 	// nothing to do here, all handled in usbhostTask
 }
