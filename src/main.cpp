@@ -19,22 +19,30 @@ const char* ssid     = NULL;
 const char* password = NULL;
 
 void loadWiFiCredentials() {
-    File file = SPIFFS.open("/wifi_config.json", "r");
-    if (!file) {
-        Serial.println("Failed to open wifi_config.json");
-        return;
-    }
+	Serial.println("\nConnecting to WiFi...");
+	// Connect to WiFi
+	WiFi.mode(WIFI_MODE_STA);
+	if (ssid == NULL || password == NULL) {
+		File file = SPIFFS.open("/wifi_config.json", "r");
+		if (!file) {
+			Serial.println("wifi_config.json introuvable ou impossible à ouvrir !");
+			return;
+		}
+		Serial.print("Taille du fichier : ");
+		Serial.println(file.size());
 
-    DynamicJsonDocument doc(1024);
-    DeserializationError error = deserializeJson(doc, file);
-    if (error) {
-        Serial.println("Failed to parse wifi_config.json");
-        return;
-    }
+		DynamicJsonDocument doc(1024);
+		DeserializationError error = deserializeJson(doc, file);
+		if (error) {
+			Serial.println("Failed to parse wifi_config.json");
+			Serial.println(error.c_str());
+			return;
+		}
 
-    ssid = doc["ssid"];
-    password = doc["password"];
-    file.close();
+		ssid = doc["ssid"];
+		password = doc["password"];
+		file.close();
+	}
 }
 // Keyboard callback
 void onKeyboard(hid_keyboard_report_t report, hid_keyboard_report_t last_report) {
@@ -209,27 +217,6 @@ void setup() {
 	if (!SPIFFS.begin(true)) {
 		Serial.println("An Error has occurred while mounting SPIFFS");
 		return;
-	}
-	Serial.println("\nConnecting to WiFi...");
-	// Connect to WiFi
-	WiFi.mode(WIFI_MODE_STA);
-	if (ssid == NULL || password == NULL) {
-		Serial.println("Loading WiFi credentials from wifi_config.json");
-		// Load WiFi credentials from wifi_config.json
-		File file = SPIFFS.open("/wifi_config.json", "r");
-		if (!file) {
-			Serial.println("Failed to open wifi_config.json");
-			return;
-		}
-		DynamicJsonDocument doc(1024);
-		DeserializationError error = deserializeJson(doc, file);
-		if (error) {
-			Serial.println("Failed to parse wifi_config.json");
-			return;
-		}
-		ssid = doc["ssid"];
-		password = doc["password"];
-		file.close();
 	}
 	loadWiFiCredentials();
 	WiFi.begin(ssid, password);
